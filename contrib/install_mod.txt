@@ -1,0 +1,102 @@
+##############################################################
+## MOD Title: Disallow links before x posts
+## MOD Author: tumba25
+##
+## MOD Version: 0.0.1
+##
+## Files To Edit:
+## posting.php
+## includes/message_parser.php
+## includes/acp/acp_board.php
+## language/en/acp/board.php
+##
+##############################################################
+## Before Adding This MOD To Your Forum, You Should Back Up All Files Related To This MOD
+##############################################################
+#
+#-----[ Open ]---------------------------------------------
+#
+posting.php
+
+#
+#-----[ Find ]---------------------------------------------
+#
+$url_status		= ($config['allow_post_links']) ? true : false;
+
+#
+#-----[ In-line Find ]---------------------------------------------
+#
+$config['allow_post_links']
+
+#
+#-----[ In-line After add ]---------------------------------------------
+#
+ && $user->data['user_posts'] > $config['links_after_num_posts']
+
+#
+#-----[ Open ]---------------------------------------------
+#
+includes/message_parser.php
+
+#
+#-----[ Find ]---------------------------------------------
+#
+	function parse($allow_bbcode, $allow_magic_url, $allow_smilies, $allow_img_bbcode = true, $allow_flash_bbcode = true, $allow_quote_bbcode = true, $allow_url_bbcode = true, $update_this_message = true, $mode = 'post')
+	{
+		global $config, $db, $user;
+
+#
+#-----[ After add ]---------------------------------------------
+#
+		$allow_url_bbcode = ($user->data['user_posts'] > $config['links_after_num_posts']) ? $allow_url_bbcode : false;
+
+#
+#-----[ Find ]---------------------------------------------
+#
+if ($allow_magic_url)
+
+#
+#-----[ In-line Find ]---------------------------------------------
+#
+$allow_magic_url
+
+#
+#-----[ In-line After add ]---------------------------------------------
+#
+ && $user->data['user_posts'] > $config['links_after_num_posts']
+
+#
+#-----[ Open ]---------------------------------------------
+#
+includes/acp/acp_board.php
+
+#
+#-----[ Find ]---------------------------------------------
+#
+						'allow_post_links'		=> array('lang' => 'ALLOW_POST_LINKS',		'validate' => 'bool',	'type' => 'radio:yes_no', 'explain' => true),
+
+#
+#-----[ After add ]---------------------------------------------
+#
+						'links_after_num_posts'	=> array('lang' => 'LINKS_AFTER_NUM_POSTS', 'validate' => 'int:0',	'type' => 'text:4:4', 'explain' => true),
+
+#
+#-----[ Open ]---------------------------------------------
+#
+language/en/acp/board.php
+
+#
+#-----[ Find ]---------------------------------------------
+#
+	'TOPICS_PER_PAGE'				=> 'Topics per page',
+
+#
+#-----[ After add ]---------------------------------------------
+#
+	'LINKS_AFTER_NUM_POSTS' => 'Min post count before posting links',
+	'LINKS_AFTER_NUM_POSTS_EXPLAIN' => 'Users will need this number of posts before they are able to use the [URL] BBCode tag and automatic/magic URLs.',
+
+#
+#-----[ EOM ]---------------------------------------------
+#
+Save and close all open files
