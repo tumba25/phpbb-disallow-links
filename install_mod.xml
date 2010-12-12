@@ -1,77 +1,87 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<?xml-stylesheet type="text/xsl" href="./modx.prosilver.en.xsl"?>
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<?xml-stylesheet type="text/xsl" href="./modx.prosilver.en.xsl" ?>
 <!--
 	NOTICE: Please open this file in your web browser. If presented with a security warning, you may safely tell it to allow the blocked content.
 -->
 <!--For security purposes, please check: http://www.phpbb.com/mods/ for the latest version of this MOD. Although MODs are checked before being allowed in the MODs Database there is no guarantee that there are no security problems within the MOD. No support will be given for MODs not found within the MODs Database which can be found at http://www.phpbb.com/mods/-->
 <mod xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.phpbb.com/mods/xml/modx-1.2.2.xsd">
-	<header>
-		<license>http://opensource.org/licenses/gpl-license.php GNU General Public License v2</license>
-		<title lang="en-gb">Disallow links before x posts</title>
-		<description lang="en-gb">Gives the option to disallow users to post url's before they have posted x number of posts. The number of posts required to post links is configurable in ACP > General > Post settings.</description>
-		<author-group>
-			<author>
-				<realname>Jari Kanerva</realname>
-				<email>tumba25@gmail.com</email>
-				<username>tumba25</username>
-				<homepage>http://skripter.se</homepage>
-			</author>
-		</author-group>
-		<mod-version>1.0.0</mod-version>
-		<installation>
-			<level>easy</level>
-			<time>180</time>
-			<target-version>3.0.4</target-version>
-		</installation>
-		<history>
-			<entry>
-				<date>2009-02-18</date>
-				<rev-version>1.0.0</rev-version>
-				<changelog lang="en-gb">
-					<change>First release.</change>
-				</changelog>
-			</entry>
-		</history>
-	</header>
-	<action-group>
-		<sql><![CDATA[INSERT INTO phpbb_config (config_name, config_value, is_dynamic) VALUES ('links_after_num_posts', '0', '0');]]></sql>
-		<open src="posting.php">
-			<edit>
-				<find><![CDATA[$url_status		= ($config['allow_post_links']) ? true : false;]]></find>
-				<inline-edit>
-					<inline-find><![CDATA[$config['allow_post_links']]]></inline-find>
-					<inline-action type="after-add"><![CDATA[ && $user->data['user_posts'] > $config['links_after_num_posts']]]></inline-action>
-				</inline-edit>
-			</edit>
-		</open>
-		<open src="includes/message_parser.php">
-			<edit>
-				<find><![CDATA[	function parse($allow_bbcode, $allow_magic_url, $allow_smilies, $allow_img_bbcode = true, $allow_flash_bbcode = true, $allow_quote_bbcode = true, $allow_url_bbcode = true, $update_this_message = true, $mode = 'post')
+<header>
+	<license>http://opensource.org/licenses/gpl-license.php GNU General Public License v2</license>
+	<title lang="en">Disallow links before x posts</title>
+	<description lang="en">Gives the option to disallow users to post url's before they have posted x number of posts. The number of posts required to post links is configurable in ACP > General > Post settings.
+Moderators are always allowed to post links</description>
+	<author-group>
+		<author>
+			<realname>Jari Kanerva</realname>
+			<username>tumba25</username>
+			<homepage>http://skripter.se</homepage>
+			<email>tumba25@gmail.com</email>
+		</author>
+	</author-group>
+	<mod-version>1.0.1</mod-version>
+	<installation>
+		<level>easy</level>
+		<time>180</time>
+		<target-version>3.0.4</target-version>
+	</installation>
+	<history>
+		<entry>
+			<date>2009-04-02</date>
+			<rev-version>1.0.1</rev-version>
+			<changelog lang="en">
+				<change>Moderators are always allowed to post links</change>
+				<change>Bugfix: You had to have "min posts" + 1 to be able to post links</change>
+			</changelog>
+		</entry>
+		<entry>
+			<date>2009-02-18</date>
+			<rev-version>1.0.0</rev-version>
+			<changelog lang="en">
+				<change>First release.</change>
+			</changelog>
+		</entry>
+	</history>
+</header>
+<action-group>
+	<sql><![CDATA[INSERT INTO phpbb_config (config_name, config_value, is_dynamic) VALUES ('links_after_num_posts', '0', '0');]]></sql>
+	<open src="posting.php">
+		<edit>
+			<find><![CDATA[$url_status		= ($config['allow_post_links']) ? true : false;]]></find>
+			<inline-edit>
+				<inline-find><![CDATA[$config['allow_post_links']]]></inline-find>
+				<inline-action type="after-add"><![CDATA[ && ($user->data['user_posts'] >= $config['links_after_num_posts'] || $auth->acl_get('m_', $forum_id))]]></inline-action>
+			</inline-edit>
+		</edit>
+	</open>
+	<open src="includes/message_parser.php">
+		<edit>
+			<find><![CDATA[	function parse($allow_bbcode, $allow_magic_url, $allow_smilies, $allow_img_bbcode = true, $allow_flash_bbcode = true, $allow_quote_bbcode = true, $allow_url_bbcode = true, $update_this_message = true, $mode = 'post')
 	{
 		global $config, $db, $user;]]></find>
-				<action type="after-add"><![CDATA[		$allow_url_bbcode = ($user->data['user_posts'] > $config['links_after_num_posts']) ? $allow_url_bbcode : false;]]></action>
-			</edit>
-			<edit>
-				<find><![CDATA[if ($allow_magic_url)]]></find>
-				<inline-edit>
-					<inline-find><![CDATA[$allow_magic_url]]></inline-find>
-					<inline-action type="after-add"><![CDATA[ && $user->data['user_posts'] > $config['links_after_num_posts']]]></inline-action>
-				</inline-edit>
-			</edit>
-		</open>
-		<open src="includes/acp/acp_board.php">
-			<edit>
-				<find><![CDATA[						'allow_post_links'		=> array('lang' => 'ALLOW_POST_LINKS',		'validate' => 'bool',	'type' => 'radio:yes_no', 'explain' => true),]]></find>
-				<action type="after-add"><![CDATA[						'links_after_num_posts'	=> array('lang' => 'LINKS_AFTER_NUM_POSTS', 'validate' => 'int:0',	'type' => 'text:4:4', 'explain' => true),]]></action>
-			</edit>
-		</open>
-		<open src="language/en/acp/board.php">
-			<edit>
-				<find><![CDATA[	'TOPICS_PER_PAGE'				=> 'Topics per page',]]></find>
-				<action type="after-add"><![CDATA[	'LINKS_AFTER_NUM_POSTS' => 'Min post count before posting links',
+			<action type="after-add"><![CDATA[		global $forum_id, $auth;
+		$allow_url_bbcode = ($user->data['user_posts'] >= $config['links_after_num_posts'] || $auth->acl_get('m_', $forum_id)) ? $allow_url_bbcode : false;]]></action>
+		</edit>
+		<edit>
+			<find><![CDATA[if ($allow_magic_url)]]></find>
+			<inline-edit>
+				<inline-find><![CDATA[$allow_magic_url]]></inline-find>
+				<inline-action type="after-add"><![CDATA[ && ($user->data['user_posts'] >= $config['links_after_num_posts'] || $auth->acl_get('m_', $forum_id))]]></inline-action>
+			</inline-edit>
+		</edit>
+	</open>
+	<open src="includes/acp/acp_board.php">
+		<edit>
+			<find><![CDATA[						'allow_post_links'		=> array('lang' => 'ALLOW_POST_LINKS',		'validate' => 'bool',	'type' => 'radio:yes_no', 'explain' => true),]]></find>
+			<action type="after-add"><![CDATA[						'links_after_num_posts'	=> array('lang' => 'LINKS_AFTER_NUM_POSTS', 'validate' => 'int:0',	'type' => 'text:4:4', 'explain' => true),]]></action>
+		</edit>
+	</open>
+	<open src="language/en/acp/board.php">
+		<edit>
+			<find><![CDATA[	'TOPICS_PER_PAGE'				=> 'Topics per page',]]></find>
+			<action type="after-add"><![CDATA[	'LINKS_AFTER_NUM_POSTS' => 'Min post count before posting links',
 	'LINKS_AFTER_NUM_POSTS_EXPLAIN' => 'Users will need this number of posts before they are able to use the [URL] BBCode tag and automatic/magic URLs.',]]></action>
-			</edit>
-		</open>
-		<diy-instructions lang="en-gb">Go to ACP -> General and purge the cache.</diy-instructions>
-	</action-group>
+		</edit>
+	</open>
+	<diy-instructions lang="en">Go to ACP -> General and purge the cache.</diy-instructions>
+</action-group>
 </mod>
