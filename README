@@ -1,0 +1,3 @@
+Gives the option to disallow users to post url's before they have posted x number of posts.
+The number of posts required to post links is configurable in ACP > General > Post settings.
+Moderators are always allowed to post links
